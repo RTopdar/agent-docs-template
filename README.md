@@ -2,16 +2,36 @@
 
 A portable, one-command scaffold for coding-agent project documentation: `CLAUDE.md` / `AGENTS.md` behavioral rules, `incident-handler` + `doc-sync` subagent specs, and a two-bundle [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) `doc/` structure (`doc/feature/` for architecture, `doc/bug/` for incidents). Platform-agnostic — works with any agent that reads `AGENTS.md`-style files (Claude Code, Cursor, Copilot, Codex, etc.), with an optional Claude-Code-specific binding layer.
 
-## Features
+## What's inside
 
-- **One-command install, interactive** — `curl | bash`, prompts for your project name, fills `{{PROJECT_NAME}}` into every doc automatically. Non-interactive `--name` flag for CI.
-- **Never clobbers your repo** — default is additive-only (`rsync --ignore-existing`); `--force` opts into overwriting.
-- **Self-healing architecture docs** — a `doc-sync` subagent spec that scans `git diff` and keeps `IMPLEMENTATION_PLAN.md` + `doc/feature/` in sync with actual code, instead of docs silently rotting.
-- **Structured incident handling** — an `incident-handler` subagent spec that checks prior incidents before re-investigating a bug, then writes up root cause/resolution in a consistent format and indexes it.
-- **OKF-formatted `doc/` bundle** — two independent bundles (`doc/feature/` architecture, `doc/bug/` incidents), each with YAML-frontmatter concept docs and a bundle index, so an agent fetches exactly the one file relevant to its question instead of a whole wiki.
-- **Platform-agnostic core, Claude Code binding included** — `AGENTS.md` carries the rules any agent can follow; `CLAUDE.md` + `.claude/agents/*.md` wire them into Claude Code's subagent tooling specifically.
-- **Optional `--caveman` flag** — installs the [caveman](https://github.com/JuliusBrussee/caveman) Claude Code plugin (terse, token-saving agent output) alongside the docs, fully disclosed and opt-in.
-- **Security-reviewed** — scanned with NVIDIA SkillSpector; see [Security scan](#security-scan-skillspector) below for what was found and fixed.
+This scaffolds a set of behavioral rules and subagents so a coding agent handles your repo consistently instead of improvising each time.
+
+**Rules (`AGENTS.md` + `CLAUDE.md`)**
+- `AGENTS.md` — platform-agnostic rules any agent (Claude Code, Cursor, Copilot, Codex, ...) reads and follows.
+- `CLAUDE.md` — Claude-Code-specific bindings that wire those rules into its subagent tooling (extends `AGENTS.md`, doesn't replace it).
+
+**Subagents (`.claude/agents/`)**
+- `incident-handler` — on a bug report: checks `doc/bug/index.md` for a known resolution first, investigates only if none exists, fixes it, writes an OKF incident doc, updates the index.
+- `doc-sync` — after significant code changes: scans `git diff` for new modules/services/decisions and updates `IMPLEMENTATION_PLAN.md`, `AGENTS.md`, and the `doc/feature/` bundle to match.
+
+**Docs (`doc/`, OKF format)**
+- `doc/feature/` — architecture bundle (one concept per file, YAML frontmatter, index) so an agent fetches exactly the file relevant to its question instead of a whole wiki.
+- `doc/bug/` — incident bundle, same structure, populated by `incident-handler` over time.
+
+**Guidelines the rules enforce (`AGENTS.md`)**
+- **Implementation plan is source of truth** — `IMPLEMENTATION_PLAN.md` holds architecture/design; any drift between it and actual code is treated as a bug, not cosmetic debt. Read it before non-trivial work.
+- **Read the concept doc before touching a module** — check its `doc/feature/` doc (and `doc/bug/index.md` for prior incidents) before suggesting or making a change; a missing concept doc is a drift signal, not a pass to skip the check.
+- **One concept per file, small** — never bundle multiple modules/incidents into one doc; every file (except `index.md`/`log.md`) carries OKF YAML frontmatter (`type`, `title`, `resource`, etc.).
+- **Two doc bundles never mix** — `doc/feature/` (architecture) and `doc/bug/` (incidents) are independent; `doc/index.md` is the index of indexes with no content of its own.
+- **Bugs are checked against history before being re-solved** — search `doc/bug/index.md` for a prior matching incident first; only investigate from scratch if nothing matches. New bugs get logged too, not just fixes.
+- **Doc updates are delegated, not inline** — bug handling goes to `incident-handler`; architecture-doc sync after code changes goes to `doc-sync`. `doc-sync` never touches `doc/bug/` — that subtree is `incident-handler`-owned exclusively.
+- **500-line file cap** — no file should exceed 500 lines; enforces DRY. Past the cap, check for a reusable component to extract into a new file first; if truly unsplittable, ask before exceeding it rather than blowing past silently.
+- **Knowledge graph before raw grep (optional)** — if a KG tool like `graphify` is installed, check doc bundle → KG query → raw code grep, in that order; skip straight to grep if no KG tool is present.
+- Template ships with no data-model conventions or migration policy — those are left for you to add to the bottom of `AGENTS.md` since they're stack-specific.
+
+**Install mechanics**
+- One command (`curl | bash`), interactive project-name prompt, `--name` for CI, additive-only by default (`rsync --ignore-existing`, `--force` to opt into overwriting), optional `--caveman` flag for the [caveman](https://github.com/JuliusBrussee/caveman) plugin.
+- **Inspected before publishing**: scanned with NVIDIA SkillSpector and reviewed by Claude (code review) — see [Security scan](#security-scan-skillspector) below for what was found and fixed.
 
 ## Quickstart
 

@@ -49,7 +49,13 @@ These rules apply to any AI coding agent working in this repo (Claude Code, Curs
 - When code changes introduce new modules, services, major decisions, or agents, delegate to the `doc-sync` subagent (`.claude/agents/doc-sync.md`) to scan diffs and update docs.
 - **Self-healing scope**: doc-sync updates `IMPLEMENTATION_PLAN.md` and `doc/feature/*.md`. It does not touch `doc/bug/` — that subtree is owned exclusively by `incident-handler`.
 
-## 5. Knowledge Graph Before Code (optional — requires a knowledge-graph tool)
+## 5. File Size Cap — 500 Lines
+
+- No file should grow past 500 lines. Enforces DRY — a file that big usually means logic that should be split out, not one giant module.
+- Before writing/extending a file past 500 lines: check if part of it can become a reusable component/module in a new file. If yes, extract it there.
+- If it genuinely can't be split (no reusable seam), it's fine to exceed the cap — but ask before doing so rather than silently blowing past it.
+
+## 6. Knowledge Graph Before Code (optional — requires a knowledge-graph tool)
 
 If a knowledge-graph tool (e.g. `graphify`) is available in your platform:
 
