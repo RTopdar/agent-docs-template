@@ -2,6 +2,17 @@
 
 A portable, one-command scaffold for coding-agent project documentation: `CLAUDE.md` / `AGENTS.md` behavioral rules, `incident-handler` + `doc-sync` subagent specs, and a two-bundle [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) `doc/` structure (`doc/feature/` for architecture, `doc/bug/` for incidents). Platform-agnostic — works with any agent that reads `AGENTS.md`-style files (Claude Code, Cursor, Copilot, Codex, etc.), with an optional Claude-Code-specific binding layer.
 
+## Features
+
+- **One-command install, interactive** — `curl | bash`, prompts for your project name, fills `{{PROJECT_NAME}}` into every doc automatically. Non-interactive `--name` flag for CI.
+- **Never clobbers your repo** — default is additive-only (`rsync --ignore-existing`); `--force` opts into overwriting.
+- **Self-healing architecture docs** — a `doc-sync` subagent spec that scans `git diff` and keeps `IMPLEMENTATION_PLAN.md` + `doc/feature/` in sync with actual code, instead of docs silently rotting.
+- **Structured incident handling** — an `incident-handler` subagent spec that checks prior incidents before re-investigating a bug, then writes up root cause/resolution in a consistent format and indexes it.
+- **OKF-formatted `doc/` bundle** — two independent bundles (`doc/feature/` architecture, `doc/bug/` incidents), each with YAML-frontmatter concept docs and a bundle index, so an agent fetches exactly the one file relevant to its question instead of a whole wiki.
+- **Platform-agnostic core, Claude Code binding included** — `AGENTS.md` carries the rules any agent can follow; `CLAUDE.md` + `.claude/agents/*.md` wire them into Claude Code's subagent tooling specifically.
+- **Optional `--caveman` flag** — installs the [caveman](https://github.com/JuliusBrussee/caveman) Claude Code plugin (terse, token-saving agent output) alongside the docs, fully disclosed and opt-in.
+- **Security-reviewed** — scanned with NVIDIA SkillSpector; see [Security scan](#security-scan-skillspector) below for what was found and fixed.
+
 ## Quickstart
 
 Scaffold into the current directory (never overwrites existing files by default). The script prompts interactively for your project name and fills `{{PROJECT_NAME}}` into the docs automatically:
