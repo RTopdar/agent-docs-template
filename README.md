@@ -7,25 +7,25 @@ A portable, one-command scaffold for coding-agent project documentation: `CLAUDE
 Scaffold into the current directory (never overwrites existing files by default):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/you/agent-docs-template/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash
 ```
 
 Add `--caveman` to also install the [caveman](https://github.com/JuliusBrussee/caveman) Claude Code plugin (terse, token-saving agent output) and drop `.caveman.json`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/you/agent-docs-template/main/install.sh | bash -s -- --caveman
+curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash -s -- --caveman
 ```
 
 Pass `--force` to overwrite files that already exist in the target directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/you/agent-docs-template/main/install.sh | bash -s -- --force
+curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash -s -- --force
 ```
 
 As with any `curl | bash` install, review the script first if you want to verify what it does before running it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/you/agent-docs-template/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh -o install.sh
 less install.sh
 bash install.sh
 ```
@@ -33,7 +33,7 @@ bash install.sh
 Or scaffold directly with [giget](https://github.com/unjs/giget) (skips the `--caveman` step):
 
 ```bash
-npx giget@2 gh:you/agent-docs-template .
+npx giget@2 gh:RTopdar/agent-docs-template .
 ```
 
 ### What gets added
@@ -149,7 +149,7 @@ SKILLSPECTOR_PROVIDER=claude_cli skillspector scan .   # or another provider, se
 ```bash
 cd agent-docs-template
 git init && git add -A && git commit -m "Initial agent-docs-template scaffold"
-gh repo create you/agent-docs-template --public --source=. --push
+gh repo create RTopdar/agent-docs-template --public --source=. --push
 ```
 
 Then update `REPO=` in `install.sh` and the URLs above to match. Review the repo for secrets before pushing, as with any `--public` repo creation.

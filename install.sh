@@ -18,8 +18,8 @@
 #   curl -fsSL <raw-url>/install.sh | bash -s -- --force        # overwrite existing files
 set -euo pipefail
 
-REPO="you/agent-docs-template"   # TODO: set to your actual GitHub owner/repo
-BRANCH="main"
+REPO="RTopdar/agent-docs-template"   # TODO: set to your actual GitHub owner/repo
+BRANCH="master"
 CAVEMAN=false
 FORCE=false
 
