@@ -4,10 +4,32 @@ A portable, one-command scaffold for coding-agent project documentation: `CLAUDE
 
 ## Quickstart
 
-Scaffold into the current directory (never overwrites existing files by default):
+Scaffold into the current directory (never overwrites existing files by default). The script prompts interactively for your project name and fills `{{PROJECT_NAME}}` into the docs automatically:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash
+```
+
+```
+   ┌─────────────────────────────────────┐
+   │        agent-docs-template           │
+   │  AGENTS.md · CLAUDE.md · OKF docs     │
+   └─────────────────────────────────────┘
+
+? Project name (used to fill {{PROJECT_NAME}} in the scaffolded docs): my-cool-app
+→ Fetching template from RTopdar/agent-docs-template@master...
+✓ Template fetched
+→ Scaffolding files into /home/you/my-cool-app...
+✓ Files scaffolded
+Done. Scaffolded for my-cool-app:
+  CLAUDE.md, AGENTS.md, .claude/agents/, doc/, IMPLEMENTATION_PLAN.md
+→ Next: fill in IMPLEMENTATION_PLAN.md and start documenting modules under doc/feature/.
+```
+
+Pass `--name "My Project"` to skip the prompt (useful for non-interactive/CI runs — the script falls back to the current directory's name if no name is given and no terminal is reachable):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash -s -- --name "My Project"
 ```
 
 Add `--caveman` to also install the [caveman](https://github.com/JuliusBrussee/caveman) Claude Code plugin (terse, token-saving agent output) and drop `.caveman.json`:
@@ -21,6 +43,8 @@ Pass `--force` to overwrite files that already exist in the target directory:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/RTopdar/agent-docs-template/master/install.sh | bash -s -- --force
 ```
+
+Flags combine, e.g. `bash -s -- --name "My Project" --caveman --force`.
 
 As with any `curl | bash` install, review the script first if you want to verify what it does before running it:
 
@@ -82,28 +106,30 @@ The remaining HIGH/MEDIUM findings after fixes are inherent to what `install.sh`
 - **TM2 "Chaining Abuse"** on the `curl | bash` line in the README and the `git clone` line in the script — SkillSpector reads "fetch → pipe → execute" as agent tool-chaining; here it's a human running one install command, the standard pattern for this whole class of tool (Homebrew, rustup, nvm, etc. all do the same).
 - **TM1 "Tool Parameter Abuse"** on `--force`/`git clone --branch` — flagged because `--force`-shaped flags are on a dangerous-parameter denylist; here `--force` only controls whether local scaffold files get overwritten, not a destructive filesystem op.
 - **RA1 "Self-Modification"** on the `rsync` line — flagged because the script writes into its own working directory; it explicitly excludes `install.sh` itself from the copy, so it isn't rewriting its own logic.
+- **RA2 "Session Persistence" / EA2 "Autonomous Decision Making"** on lines inside the README's example terminal transcript (the fenced block showing what a run looks like) — the scanner pattern-matches words like "Fetching"/"Scaffolding"/"Done" in that illustrative output as if they were live agent behavior, not markdown prose showing a sample run.
+- **RP1 "unpinned reference"** duplicated across several README lines — same `giget@2` mention appearing once per code block (quickstart, giget-direct, and the example transcript), each counted separately.
 
-None of these represent an agent being tricked into unauthorized action at runtime, which is what SkillSpector is built to catch — they're static pattern matches on an installer shape. Documented here rather than "resolved away" by disabling the checks, so anyone auditing this repo can see the tool's actual output and judge for themselves.
+None of these represent an agent being tricked into unauthorized action at runtime, which is what SkillSpector is built to catch — they're static pattern matches on an installer shape and its own documentation. Documented here rather than "resolved away" by disabling the checks, so anyone auditing this repo can see the tool's actual output and judge for themselves.
 
 ### Full reports
 
 <details>
-<summary>Static analysis (<code>skillspector scan . --no-llm --format markdown</code>) — post-fix</summary>
+<summary>Static analysis (<code>skillspector scan . --no-llm --format markdown</code>) — latest, post interactive-prompt update</summary>
 
 ```
 Score: 100/100 — CRITICAL — DO NOT INSTALL
-Components inspected: 12/12 (100% coverage)
+Components inspected: 12/12 (100% coverage), 26 findings (up from 10 pre-prompt-update,
+almost entirely duplicate/example-transcript noise from the expanded README — see above)
 
-HIGH  TM2  README.md:8        Chaining Abuse (curl | bash quickstart)
-HIGH  TM2  install.sh:16      Chaining Abuse (fetch → rsync)
-HIGH  SC2  install.sh:13      External Script Fetching (npx giget)
-HIGH  SC2  install.sh:17      External Script Fetching (git clone fallback)
-HIGH  SC2  install.sh:18      External Script Fetching (git clone fallback, cont.)
-HIGH  RA1  install.sh:18      Self-Modification (rsync writes into cwd)
-HIGH  TM1  install.sh:41      Tool Parameter Abuse (--force flag pattern)
-MED   RP1  README.md:20       Unpinned npx giget reference
-LOW   SC2  README.md:8        External Script Fetching (low-confidence dup)
-LOW   SC2  README.md:14       External Script Fetching (low-confidence dup)
+HIGH    TM2  README.md:10, install.sh:16     Chaining Abuse (curl | bash quickstart / fetch → rsync)
+HIGH    SC2  README.md:49,106,121            External Script Fetching (example transcript + giget mentions)
+HIGH    SC2  install.sh:13,17,18,19,69       External Script Fetching (npx giget / git clone fallback)
+HIGH    RA1  install.sh:18                   Self-Modification (rsync writes into cwd)
+HIGH    TM1  install.sh:92                   Tool Parameter Abuse (--force flag pattern)
+MED     RA2  README.md:83                    Session Persistence (example transcript text)
+MED     EA2  README.md:96,150                Autonomous Decision Making (example transcript text)
+MED     RP1  README.md:105,123,128,149       Unpinned npx giget reference (duplicate mentions)
+LOW     SC2  README.md:10,32,38,44,52        External Script Fetching (low-confidence dups)
 ```
 
 </details>
